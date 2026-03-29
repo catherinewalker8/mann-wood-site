@@ -1,0 +1,2 @@
+DROP DATABASE IF EXISTS mann_wood_db;
+CREATE DATABASE mann_wood_db;
