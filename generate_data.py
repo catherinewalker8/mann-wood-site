@@ -5,12 +5,15 @@ from shapely.geometry import Point
 
 # 1. Setup absolute paths so it doesn't matter where you run the script from
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_GPKG = os.path.join(BASE_DIR, "gis_data", "mannwood_layers.gpkg") # Update filename
+INPUT_GPKG = os.path.join(BASE_DIR, "gis_data", "manwood_layers.gpkg") # Update filename
 OUTPUT_DIR = os.path.join(BASE_DIR, "client", "public", "data")
 
 # 2. Load Compartments
+import pyogrio
+layers = pyogrio.list_layers(INPUT_GPKG)
+print("Layers inside this file:", layers[:,0])
 # Change layer name to whatever yours is named in QGIS
-gdf_comp = gpd.read_file(INPUT_GPKG, layer="woodland_compartments").to_crs(epsg=4326)
+gdf_comp = gpd.read_file(INPUT_GPKG, layer="compartment_approx._last_cut").to_crs(epsg=4326)
 
 # 3. Generate Dummy Trees
 all_trees = []
