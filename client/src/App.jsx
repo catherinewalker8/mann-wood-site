@@ -25,10 +25,10 @@ function App() {
   }, []);
 
   const impactAreas = [
-    { icon: <BookOpen />, title: "Education", text: "Nature is the classroom.", color: "#82bc00" },
-    { icon: <Heart />, title: "Therapy", text: "Nature as a therapeutic tool.", color: "#00a1e4" },
-    { icon: <Users />, title: "Volunteering", text: "Practical tasks preserve ancient woodland.", color: "#f39200" },
-    { icon: <Leaf />, title: "Environment", text: "Protecting biodiversity for the future.", color: "#2d5a27" }
+    { icon: <BookOpen />, title: "Education", text: "Discover, Play, Learn", color: "#82bc00" },
+    { icon: <Heart />, title: "Therapy", text: "Transforming lives through nature", color: "#00a1e4" },
+    { icon: <Users />, title: "Volunteering", text: "Hands-on work in conservation", color: "#f39200" },
+    { icon: <Leaf />, title: "Environment", text: "Protecting our woods for the future", color: "#2d5a27" }
   ];
 
   const treeSpecies = [
@@ -45,14 +45,41 @@ function App() {
   return (
     <div className="bg-light min-vh-100 pb-5">
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom py-3 mb-4 shadow-sm">
-        <div className="container">
-          <a className="navbar-brand d-flex align-items-center" href="/">
-            <img src="/wf-logo.png" alt="WF Logo" height="70" className="me-3" />
-            <span className="fw-bold text-success fs-1 ms-5" style={{ letterSpacing: '1px' }}>MANN WOOD</span>
+        <div className="container-fluid px-4">
+          {/* 1. Brand Group - flex-grow-1 pushes everything else to the right */}
+          <a className="navbar-brand d-flex align-items-center flex-grow-1" href="/">
+            <img src="/wf-logo.png" alt="WF Logo" height="60" className="me-3" />
+            <div className="d-flex flex-column">
+              <span className="fw-bold text-success fs-2 lh-1" style={{ letterSpacing: '2px' }}>
+                MANN WOOD
+              </span>
+            </div>
           </a>
+
+          {/* 2. Standard Bootstrap Toggler for Mobile */}
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          {/* 3. Navigation Links - ms-auto ensures it sticks to the right edge */}
+          <div className="collapse navbar-collapse flex-grow-0" id="mainNav">
+            <ul className="navbar-nav ms-auto align-items-center">
+              {['About', 'Visit', 'Impact', 'Contact'].map(item => (
+                <li className="nav-item" key={item}>
+                  <a className="nav-link fw-bold px-3 text-uppercase text-dark" style={{ fontSize: '0.8rem' }} href={`#${item.toLowerCase()}`}>
+                    {item}
+                  </a>
+                </li>
+              ))}
+              <li className="nav-item ms-lg-4">
+                <a className="btn btn-success rounded-pill px-4 fw-bold shadow-sm" href="#donate">
+                  DONATE
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </nav>
-
       <main className="container-fluid px-4">
         {/* Main Dashboard Row */}
         <div className="row g-4 mb-5" style={{ minHeight: '650px' }}>
@@ -101,12 +128,12 @@ function App() {
               <h6 className="fw-bold mb-3 text-dark" style={{ fontSize: '0.9rem' }}>Tree Species Key</h6>
               <div className="row g-2">
                 {treeSpecies.map((s) => (
-                  <div key={s.name} className="col-6 d-flex align-items-center gap-2" style={{ fontSize: '12px' }}>
+                  <div key={s.name} className="col-6 d-flex align-items-start gap-2" style={{ fontSize: '12px' }}>
                     <span style={{ 
                       height: '10px', width: '10px', backgroundColor: s.color, 
                       borderRadius: '50%', border: '1px solid #999', flexShrink: 0
                     }}></span>
-                    <span className="text-muted text-truncate">{s.name}</span>
+                    <span className="text-muted text-start text-wrap lh-sm">{s.name}</span>
                   </div>
                 ))}
               </div>
