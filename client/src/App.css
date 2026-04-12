@@ -38,3 +38,17 @@ body {
     margin-bottom: 10px;
   }
 }
+
+/* Ensure the sidebar iframe looks integrated */
+.card-body iframe {
+  border: none;
+  background: #fff;
+}
+
+/* Make sure the map and sidebar stay the same height on large screens */
+@media (min-width: 992px) {
+  .col-lg-9, .col-lg-3 {
+    display: flex;
+    flex-direction: column;
+  }
+}
