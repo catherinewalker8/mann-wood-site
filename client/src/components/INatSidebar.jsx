@@ -1,13 +1,8 @@
 import React from 'react';
-import { Squirrel, ExternalLink, Camera, MapPin } from 'lucide-react';
+import { Squirrel, Camera} from 'lucide-react';
 
 // Receiving observations and loading as props from App.jsx
 const INatSidebar = ({ observations, loading }) => {
-  
-  // Mann Wood Coordinates (for the "View Full Map" link)
-  const LAT = 51.761;
-  const LNG = 0.492;
-  const RADIUS = 1;
 
   if (loading) {
     return (
@@ -20,13 +15,6 @@ const INatSidebar = ({ observations, loading }) => {
 
   return (
     <div className="list-group list-group-flush px-1">
-      {/* Header Label */}
-      <div className="px-3 py-2 bg-light rounded mb-3 d-flex align-items-center">
-        <MapPin size={14} className="text-success me-2" />
-        <span className="small fw-bold text-muted text-uppercase" style={{ letterSpacing: '0.5px' }}>
-          Local Observations
-        </span>
-      </div>
 
       {/* Observation List */}
       {observations && observations.length > 0 ? (
@@ -38,6 +26,7 @@ const INatSidebar = ({ observations, loading }) => {
             rel="noreferrer" 
             className="list-group-item list-group-item-action border-0 py-3 mb-2 shadow-sm rounded bg-white"
           >
+            
             <div className="d-flex align-items-center">
               {/* Species Image */}
               {obs.photos?.[0] ? (
@@ -63,7 +52,7 @@ const INatSidebar = ({ observations, loading }) => {
                 </div>
                 <div className="text-success fw-bold mt-1" style={{ fontSize: '0.7rem' }}>
                   {obs.created_at 
-                    ? new Date(obs.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                    ? new Date(obs.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' })
                     : 'Recent'}
                 </div>
               </div>
@@ -76,17 +65,6 @@ const INatSidebar = ({ observations, loading }) => {
         </div>
       )}
 
-      {/* Footer Link */}
-      <div className="p-2 mt-2">
-        <a 
-          href={`https://www.inaturalist.org/observations?lat=${LAT}&lng=${LNG}&radius=${RADIUS}`}
-          target="_blank" 
-          rel="noreferrer" 
-          className="btn btn-outline-success btn-sm w-100 fw-bold border-2"
-        >
-          View Full Location Map <ExternalLink size={14} className="ms-1" />
-        </a>
-      </div>
     </div>
   );
 };
