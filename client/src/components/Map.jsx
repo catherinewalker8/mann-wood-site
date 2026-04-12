@@ -2,6 +2,56 @@ import { MapContainer, TileLayer, GeoJSON, CircleMarker, Popup } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 
+
+const Legend = () => {
+  const species = [
+    { name: 'Oak', color: '#1a4301' },
+    { name: 'Hornbeam', color: '#4a6741' },
+    { name: 'Birch', color: '#d1d1d1' },
+    { name: 'Hazel', color: '#7eb34a' },
+    { name: 'Sweet Chestnut', color: '#8b4513' },
+    { name: 'Field Maple', color: '#e67e22' },
+    { name: 'Ash', color: '#95a5a6' },
+    { name: 'Lime', color: '#cddc39' }
+  ];
+  
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: '20px',
+      right: '20px',
+      backgroundColor: 'white',
+      padding: '15px',
+      borderRadius: '8px',
+      boxShadow: '0 0 15px rgba(0,0,0,0.2)',
+      zIndex: 1000,
+      fontSize: '12px',
+      fontFamily: 'sans-serif',
+      lineHeight: '1.8'
+    }}>
+      <h4 style={{ margin: '0 0 10px 0', color: '#1b4d3e' }}>Tree Species</h4>
+      {species.map((s) => (
+        <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ 
+            height: '12px', 
+            width: '12px', 
+            backgroundColor: s.color, 
+            borderRadius: '50%', 
+            display: 'inline-block',
+            border: '1px solid #999'
+          }}></span>
+          {s.name}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const woodlandBounds = [
+  [0.529936395487755, 51.829249708319736], // SouthWest corner
+  [59.765, 0.495]  // NorthEast corner
+];
+
 // Color Palette for Specific Species
 const speciesPalette = {
   'Oak': '#1a4301',            // Deep Forest Green
@@ -16,6 +66,7 @@ const speciesPalette = {
 
 export default function WoodlandMap() {
   const [data, setData] = useState({ trees: null, comps: null });
+  const [map, setMap] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -24,12 +75,12 @@ export default function WoodlandMap() {
     ]).then(([trees, comps]) => setData({ trees, comps }));
   }, []);
 
-  // Shade compartments by age: Darker = Older/Neglected, Lighter = Recently Cut
-  const getCompStyle = (feature) => {
-    const age = feature.properties.years_since_cut || 0;
-    const color = age > 25 ? '#0b2612' : age > 15 ? '#1b4d3e' : age > 5 ? '#2d8a4e' : '#a2d1a4';
-    return { fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.5 };
-  };
+  useEffect(() => {
+    if (map && data.comps && data.comps.features.length > 0) {
+      const geoJsonLayer = L.geoJSON(data.comps);
+      map.fitBounds(geoJsonLayer.getBounds());
+    }
+  }, [map, data.comps]);
 
   if (!data.trees || !data.comps) {
   return (
@@ -41,9 +92,15 @@ export default function WoodlandMap() {
   );
 }
 
-return (
+return (  
   <div style={{ height: "500px", width: "100%", position: "relative", zIndex: 1 }}>
+    <Legend />
     <MapContainer 
+      ref={setMap}
+      minZoom={15}       
+      maxZoom={19}           
+      maxBounds={woodlandBounds} 
+      maxBoundsViscosity={1.0}
       center={[51.76, 0.49]} 
       zoom={16} 
       scrollWheelZoom={true}
@@ -53,9 +110,6 @@ return (
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      
-      {/* 1. Shaded Compartments */}
-      {data.comps && <GeoJSON data={data.comps} style={getCompStyle} />}
 
       {/* 2. High Density Trees */}
       {data.trees && data.trees.features.map((tree, i) => {
@@ -66,7 +120,7 @@ return (
           <CircleMarker 
             key={`tree-${i}`}
             center={[tree.geometry.coordinates[1], tree.geometry.coordinates[0]]}
-            radius={tree.properties.dbh_cm * 0.15} 
+            radius={tree.properties.dbh_cm * 0.5} 
             pathOptions={{ 
               fillColor: speciesPalette[tree.properties.species] || '#333',
               color: 'white',
