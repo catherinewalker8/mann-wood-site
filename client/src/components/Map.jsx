@@ -1,93 +1,87 @@
 import { MapContainer, TileLayer, GeoJSON, CircleMarker, Popup } from 'react-leaflet';
-import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 
-const Map = () => {
-  const [data, setData] = useState({ trees: null, compartments: null });
+// Color Palette for Specific Species
+const speciesPalette = {
+  'Oak': '#1a4301',            // Deep Forest Green
+  'Hornbeam': '#4a6741',        // Mossy Green
+  'Birch': '#d1d1d1',          // Silver/White
+  'Hazel': '#7eb34a',          // Spring Green
+  'Sweet Chestnut': '#8b4513', // Saddle Brown
+  'Field Maple': '#e67e22',    // Autumnal Orange
+  'Ash': '#95a5a6',            // Pale Ash Grey
+  'Lime': '#cddc39'            // Vibrant Lime
+};
+
+export default function WoodlandMap() {
+  const [data, setData] = useState({ trees: null, comps: null });
 
   useEffect(() => {
-    // Fetching from the public folder (Vite serves this at the root)
     Promise.all([
-      fetch('/data/trees.json').then((res) => res.json()),
-      fetch('/data/compartments.json').then((res) => res.json()),
-    ])
-      .then(([trees, compartments]) => {
-        setData({ trees, compartments });
-      })
-      .catch((err) => console.error("Error loading woodland data:", err));
+      fetch('/data/trees.json').then(res => res.json()),
+      fetch('/data/compartments.json').then(res => res.json())
+    ]).then(([trees, comps]) => setData({ trees, comps }));
   }, []);
 
-  // Styling for the woodland compartments
-  const compartmentStyle = {
-    fillColor: '#2d5a27',
-    weight: 2,
-    opacity: 1,
-    color: 'white',
-    dashArray: '3',
-    fillOpacity: 0.2,
+  // Shade compartments by age: Darker = Older/Neglected, Lighter = Recently Cut
+  const getCompStyle = (feature) => {
+    const age = feature.properties.years_since_cut || 0;
+    const color = age > 25 ? '#0b2612' : age > 15 ? '#1b4d3e' : age > 5 ? '#2d8a4e' : '#a2d1a4';
+    return { fillColor: color, color: 'white', weight: 1.5, fillOpacity: 0.5 };
   };
 
-  if (!data.trees || !data.compartments) {
-    return <div style={{ padding: '20px' }}>Loading Woodland Map...</div>;
-  }
-
+  if (!data.trees || !data.comps) {
   return (
-    <div style={{ height: '700px', width: '100%' }}>
-      <MapContainer 
-        center={[51.5, -0.1]} // This will be overridden if you use bounds, but it's a safe start
-        zoom={17} 
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+    <div style={{ height: "700px", background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", border: "2px dashed #ccc" }}>
+      <p style={{ color: "#666" }}>
+        { !data.trees ? "⏳ Loading Trees (Large File)..." : "Checking Compartments..." }
+      </p>
+    </div>
+  );
+}
 
-        {/* 1. Compartment Polygons */}
-        <GeoJSON 
-          data={data.compartments} 
-          style={compartmentStyle} 
-          onEachFeature={(feature, layer) => {
-            layer.bindPopup(`
-              <strong>Compartment: ${feature.properties.id || 'N/A'}</strong><br/>
-              Last Cut: ${feature.properties.years_since_cut} years ago
-            `);
-          }}
-        />
+return (
+  <div style={{ height: "500px", width: "100%", position: "relative", zIndex: 1 }}>
+    <MapContainer 
+      center={[51.76, 0.49]} 
+      zoom={16} 
+      scrollWheelZoom={true}
+      style={{ height: "100%", width: "100%", minHeight: "500px" }} 
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      
+      {/* 1. Shaded Compartments */}
+      {data.comps && <GeoJSON data={data.comps} style={getCompStyle} />}
 
-        {/* 2. Proportional Tree Markers */}
-        {data.trees.features.map((tree, idx) => (
-          <CircleMarker
-            key={idx}
-            center={[
-              tree.geometry.coordinates[1], // Latitude
-              tree.geometry.coordinates[0]  // Longitude
-            ]}
-            // Scaling the radius based on DBH (the "Proportional" part)
-            radius={tree.properties.dbh_cm * 0.4} 
-            pathOptions={{
-              // Red if disease exists, Dark Green if healthy
-              fillColor: tree.properties.disease !== 'None' ? '#e74c3c' : '#1b4d3e',
-              color: '#ffffff',
-              weight: 1,
-              fillOpacity: 0.8,
+      {/* 2. High Density Trees */}
+      {data.trees && data.trees.features.map((tree, i) => {
+        // Safety check: skip if coordinates are missing
+        if (!tree.geometry || !tree.geometry.coordinates) return null;
+        
+        return (
+          <CircleMarker 
+            key={`tree-${i}`}
+            center={[tree.geometry.coordinates[1], tree.geometry.coordinates[0]]}
+            radius={tree.properties.dbh_cm * 0.15} 
+            pathOptions={{ 
+              fillColor: speciesPalette[tree.properties.species] || '#333',
+              color: 'white',
+              weight: 0.3,
+              fillOpacity: 0.9 
             }}
           >
             <Popup>
-              <div style={{ fontSize: '14px' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>{tree.properties.species}</h4>
-                <hr />
-                <b>DBH:</b> {tree.properties.dbh_cm} cm<br />
-                <b>Stems:</b> {tree.properties.stems}<br />
-                <b>Health:</b> {tree.properties.disease}<br />
-                <b>Year of Last Cut:</b> {tree.properties.last_cut}
-              </div>
+              <strong>{tree.properties.species}</strong><br/>
+              DBH: {tree.properties.dbh_cm}cm
             </Popup>
           </CircleMarker>
-        ))}
-      </MapContainer>
-    </div>
-  );
-};
-
-export default Map;
+        );
+      })}
+    </MapContainer>
+  </div>
+);
+}

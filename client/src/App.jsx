@@ -22,11 +22,11 @@ function App() {
         <div className="sidebar left">
           <div className="icon-box education">
             <BookOpen /> <h3>Education</h3>
-            <p>Forest school & workshops for 800+ students.</p>
+            <p>Discover, Play, Learn</p>
           </div>
           <div className="icon-box volunteering">
             <Users /> <h3>Volunteering</h3>
-            <p>Join our team of woodland guardians.</p>
+            <p>Conserving nature through practical tools and skills.</p>
           </div>
         </div>
 
